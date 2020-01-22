@@ -25,7 +25,24 @@ foreach ($follow as $followRow) {
 }
 
 foreach ($follows as $postsRow) {
-    $posts[] = $Users->getPostAndUser2($postsRow['followedid']);
+    $lockUser = $Users->getUser($postsRow['followedid']);
+    if($lockUser['privacy'] == 'lock'){
+        $allow = $Users->getAllow($postsRow['followedid']);
+        foreach($allow as $allowRow){
+            if($allowRow['allowUserid'] == $id){
+                $share = $Users->getShare($postsRow['followedid']);
+                foreach($share as $shareRow){
+                $posts[]= $Users->getPostAndUser($shareRow['postid']);
+                }
+            }
+        }
+    }else{
+        $share = $Users->getShare($postsRow['followedid']);
+        foreach($share as $shareRow){
+        $posts[] = $Users->getPostAndUser($shareRow['postid']);
+        }
+    }
+    
 }
 
 //　チャットのファンクション
@@ -72,11 +89,20 @@ foreach ($followed as $followedRow) {
                     <li class="nav-item active">
                         <a class="nav-link" href="addpost.php">Add Post <span class="sr-only">(current)</span></a>
                     </li>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="makeGorup.php">make Group Chat <span class="sr-only">(current)</span></a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link" href="follows.php">Follows</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="followers.php">Followers</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link disabled" href="edit.php">Edit</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link disabled" href="logout.php">logout</a>
                     </li>
                 </ul>
                 <form class="form-inline my-2 my-lg-0" action="action.php" method="post">
@@ -90,20 +116,22 @@ foreach ($followed as $followedRow) {
         <div class="d-flex justify-content-center">
             <div class="image_outer_container">
                 <div class="green_icon"></div>
-                <div class="image_inner_container">
-                    <img src='uploads/<?php echo $user['picture'] ?>'>
-                </div>
+                <a href='profile.php?id=<?php echo $id?>'>               
+                    <div class="image_inner_container">
+                        <img src='uploads/<?php echo $user['picture'] ?>'>
+                    </div>
+                </a>
             </div>
         </div>
         <h1 class="username"><?php echo $user['username'] ?></h1>
 
+        <!-- ここからポスト -->
         <div class="row">
             <div class="col-6">
                 <!-- post start -->
                 <?php foreach ($posts as $postsRow) : ?>
-                    <?php foreach ($postsRow as $row) : ?>
                         <?php
-                        $nice = $Users->getNice($row['postid']);
+                        $nice = $Users->getNice($postsRow['postid']);
                         $niceAmount = 0;
                         $myNice = 0;
                         foreach ($nice as $niceRow) {
@@ -112,7 +140,7 @@ foreach ($followed as $followedRow) {
                                 $myNice++;
                             }
                         }
-                        $share = $Users->getPostShare($row['postid']);
+                        $share = $Users->getPostShare($postsRow['postid']);
                         $shareAmount = 0;
                         $myShare = 0;
                         foreach ($share as $niceRow) {
@@ -131,10 +159,10 @@ foreach ($followed as $followedRow) {
                                             <div class="cardbox-heading">
                                                 <div class="media m-0">
                                                     <div class="d-flex mr-3">
-                                                        <a href=""><img class="img-fluid rounded-circle" src="uploads/<?php echo $row['picture'] ?>" alt="User"></a>
+                                                        <a href="profile.php?id=<?php echo $postsRow['userid']?>"><img class="img-fluid rounded-circle" src="uploads/<?php echo $postsRow['picture'] ?>" alt="User"></a>
                                                     </div>
                                                     <div class="media-body">
-                                                        <h3 class="m-0"><?php echo $row['title'] ?></h3>
+                                                        <h3 class="m-0"><?php echo $postsRow['title'] ?></h3>
                                                     </div>
                                                 </div>
                                                 <!--/ media -->
@@ -142,12 +170,12 @@ foreach ($followed as $followedRow) {
                                             <!--/ cardbox-heading -->
 
                                             <div class="cardbox-item">
-                                                <img class="img-fluid" src="uploads/<?php echo $row['postPicture']; ?>" alt="Image">
+                                                <img class="img-fluid" src="uploads/<?php echo $postsRow['postPicture']; ?>" alt="Image">
                                             </div>
                                             <!--/ cardbox-item -->
                                             <form action="action.php" method="post" class="cardbox-base">
                                                 <!-- postid and id send -->
-                                                <input type='hidden' name='postid' value='<?php echo $row['postid'] ?>'>
+                                                <input type='hidden' name='postid' value='<?php echo $postsRow['postid'] ?>'>
                                                 <input type='hidden' name='userid' value='<?php echo $id ?>'>
                                                 <ul class="float-right">
                                                     <li><a>
@@ -162,10 +190,12 @@ foreach ($followed as $followedRow) {
 
                                                     <li><a>
                                                             <?php
-                                                            if ($myShare == 0) {
-                                                                echo "<button class='btn p-0' type='submit' name='shareSubmit'><i class='far fa-share-square''>$shareAmount</i></button>";
-                                                            } else {
-                                                                echo "<button class='btn p-0' type='submit' name='unShareSubmit'><i class='fas fa-share-square'>$shareAmount</i></button>";
+                                                            if($id !== $postsRow['userid']){
+                                                                if ($myShare == 0) {
+                                                                    echo "<button class='btn p-0' type='submit' name='shareSubmit'><i class='far fa-share-square''>$shareAmount</i></button>";
+                                                                } else {
+                                                                    echo "<button class='btn p-0' type='submit' name='unShareSubmit'><i class='fas fa-share-square'>$shareAmount</i></button>";
+                                                                }
                                                             }
                                                             ?>
                                                         </a></li>
@@ -176,22 +206,35 @@ foreach ($followed as $followedRow) {
                                                     <?php
                                                     foreach ($nice as $niceRow) {
                                                         $niceFriend = $Users->getuser($niceRow['userid']);
-                                                        echo "<li><a href='#'><img src='uploads/" . $niceFriend['picture'] . "' class='img-fluid rounded-circle' alt='User'></a></li>";
+                                                        echo "<li><a href='profile.php?id=" . $niceFriend['userid'] . "'><img src='uploads/" . $niceFriend['picture'] . "' class='img-fluid rounded-circle' alt='User'></a></li>";
                                                     }
                                                     ?>
 
                                                     <li><a><span><?php echo $niceAmount ?> Likes</span></a></li>
                                                 </ul>
                                             </form>
+                                            <?php
+                                            $comment = $Users->getComment($postsRow['postid']);
+                                            foreach ($comment as $commentRow) {
+                                                echo "<div class='comments'>
+                                                    <img src='uploads/" . $commentRow['picture'] . "'  class='pull-left comment_image'>
+                                                    <p class='comment_post'>" . $commentRow['comment'] . "</p>
+                                                </div>";
+                                            }
+                                            ?>
+
                                             <!--/ cardbox-base -->
                                             <div class="cardbox-comments">
                                                 <span class="comment-avatar float-left">
-                                                    <a href=""><img class="rounded-circle" src="uploads/<?php echo $user['picture']; ?>" alt="..."></a>
+                                                    <a href="profile.php?id=<?php echo $id?>"><img class="rounded-circle" src="uploads/<?php echo $user['picture']; ?>" alt="..."></a>
                                                 </span>
-                                                <div class="search">
-                                                    <input placeholder="Write a comment" type="text">
-                                                    <button><i class="fa fa-camera"></i></button>
-                                                </div>
+                                                <form class="search" method='post' action="action.php">
+                                                    <input type="hidden" name="postid" value="<?php echo $postsRow['postid'] ?>">
+                                                    <input type="hidden" name="userid" value="<?php echo $id ?>">
+                                                    <input type="hidden" name="friendid" value="<?php echo $friendid ?>">
+                                                    <input placeholder="Write a comment" type="text" name="comment">
+                                                    <button type="submit" name='submitCommentChat'><i class="fa fa-paper-plane"></i></button>
+                                                </form>
                                                 <!--/. Search -->
                                             </div>
                                             <!--/ cardbox-like -->
@@ -205,41 +248,40 @@ foreach ($followed as $followedRow) {
                             <!--/ container -->
                         </section>
                     <?php endforeach; ?>
-                <?php endforeach; ?>
             </div>
             <!-- ここからチャット -->
 
             <div class="col-6 mt-5 side_by_side" style="height: 800px; overflow: scroll;">
-                    <?php
-                        $dialog = $Users->getChat($id, $friendid);
-                        echo "<div class='row rounded-lg overflow-hidden shadow'>
+                <?php
+                $dialog = $Users->getChat($id, $friendid);
+                echo "<div class='row rounded-lg overflow-hidden shadow'>
                                 <div class='col-12 px-0'>
                                 <div class='bg-white'>";
-                        foreach ($dialog as $dialogRow) {
-                            $user = $Users->getUser($dialogRow['sendid']);
-                            if($dialogRow['sendid'] == $id){
-                                echo "<div class='media w-50 ml-auto mb-3'>
+                foreach ($dialog as $dialogRow) {
+                    $user = $Users->getUser($dialogRow['sendid']);
+                    if ($dialogRow['sendid'] == $id) {
+                        echo "<div class='media w-50 ml-auto mb-3'>
                                         <div class='media-body'>
                                             <div class='bg-primary rounded py-2 px-3 mb-2'>
-                                                <p class='text-small mb-0 text-white'>".$dialogRow['sentence']."</p>
+                                                <p class='text-small mb-0 text-white'>" . $dialogRow['sentence'] . "</p>
                                             </div>";
-                                            if($dialogRow['chatCheck'] == 'check'){
-                                                echo "<p class='small text-muted'>check</p>";
-                                            }
-                                 echo "</div>
+                        if ($dialogRow['chatCheck'] == 'check') {
+                            echo "<p class='small text-muted'>check</p>";
+                        }
+                        echo "</div>
                                     </div>";
-                            }else{
-                                $Users->checkedChat($dialogRow['chatid']);
-                                echo "<div class='media w-50 mb-3'><img src='uploads/".$user['picture']."' alt='user' width='50' class='rounded-circle'>
+                    } else {
+                        $Users->checkedChat($dialogRow['chatid']);
+                        echo "<div class='media w-50 mb-3'><img src='uploads/" . $user['picture'] . "' alt='user' width='50' class='rounded-circle'>
                                         <div class='media-body ml-3'>
                                             <div class='bg-light rounded py-2 px-3 mb-2'>
-                                                <p class='text-small mb-0 text-muted'>".$dialogRow['sentence']."</p>
+                                                <p class='text-small mb-0 text-muted'>" . $dialogRow['sentence'] . "</p>
                                             </div>
                                         </div>
                                     </div>";
-                            }
-                        }
-                        echo "  <form action='action.php' method='post' class='bg-light'>
+                    }
+                }
+                echo "  <form action='action.php' method='post' class='bg-light'>
                                     <div class='input-group'>
                                         <input type='text' name='sentence' placeholder='Type a message' aria-describedby='button-addon2' class='form-control rounded-0 border-0 py-4 bg-light'>
                                         <input type='hidden' name='sendid' value='$id'>
@@ -250,13 +292,10 @@ foreach ($followed as $followedRow) {
                                     </div>
                                 </form>
                                 </div>
+                                </div>  
                                 </div>
-                                </div>";
-                   
-
-                        
-                    
-                    ?>
+                                <a class='btn btn-outline-primary' href='homepage.php'>back</button>";
+                ?>
 
 
 

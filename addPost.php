@@ -8,9 +8,42 @@
 include 'action.php';
 $id = $_SESSION['userid'];
 $user = $Users->getUser($id);
-$keyword = $_GET['keyword'];
-$users = $Users->getFriends($keyword);
-$followsid = $Users->getfollows($id);
+
+// ポストのファンクション
+$follow = $Users->getfollows($id);
+foreach ($follow as $followRow) {
+    $allow = $Users->getAllow($followRow['followedid']);
+    if ($followRow['privacy'] !== 'lock') {
+        $follows[] = $followRow;
+    } else {
+        foreach ($allow as $allowRow) {
+            if ($followRow['userid'] == $allowRow) {
+                $follows[] = $folowRow;
+            }
+        }
+    }
+}
+
+foreach ($follows as $postsRow) {
+    $posts[] = $Users->getPostAndUser2($postsRow['followedid']);
+}
+
+//　チャットのファンクション
+$followed = $Users->getfollowers($id);
+foreach ($followed as $followedRow) {
+    foreach ($follow as $followRow) {
+        if ($followedRow['userid'] == $followRow['followedid'] and $followedRow['userid'] !== $id) {
+            $friends[] = $Users->getUser($followRow['followedid']);
+        }
+    }
+}
+
+if (isset($_SESSION['friendid'])) {
+    $_POST['friendid'] = $_SESSION['friendid'];
+}
+
+
+
 ?>
 
 <head>
@@ -20,10 +53,9 @@ $followsid = $Users->getfollows($id);
     <link rel="stylesheet" href="styles/homepage.css">
     <link rel="stylesheet" href="styles/homepageChat.css">
     <link rel="stylesheet" href="styles/homepageChatfriend.css">
-    <link rel="stylesheet" href="styles/search.css">
+    <link rel="stylesheet" href="styles/edit.css">
     <link href="https://fonts.googleapis.com/css?family=Rokkitt" rel="stylesheet">
     <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
-
 
 </head>
 
@@ -77,71 +109,29 @@ $followsid = $Users->getfollows($id);
                 </a>
             </div>
         </div>
-        <h1 class="username mb-5"><?php echo $user['username'] ?></h1>
+        <h1 class="username"><?php echo $user['username'] ?></h1>
 
-        <div class='row mt-5'>
-            <?php
-
-            foreach ($users as $key => $row) {
-                $count = 0;
-                foreach ($followsid as $keys => $rows) {
-                    if ($rows['followedid'] == $row['userid']) {
-                        $count++;
-                    } elseif ($user['userid'] == $row['userid']) {
-                        $count += 2;
-                    } else {
-                        continue;
-                    }
-                }
-                if ($count == 0) {
-                    echo "<form class='col-4 mb-3' action='action.php' method='post'>
-                            <div class='card text-left user'>
-                                <div class='card-header '>
-                                    <div class='d-flex justify-content-center'>
-                                        <div class='image_outer_container'>
-                                            <div class='image_inner_container'>
-                                                <img src='uploads/".$row['picture']."'>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class='card-body'>
-                                    <h4 class='card-title'>".$row['username']."</h4>
-                                    <button class='btn btn-outline-primary w-25 mr-3' type='submit' name='follow'>follow</button>
-                                    <a href='profile.php?id=".$row['userid']."' class='btn btn-outline-danger w-25'>profile</a>
-                                    <input type='hidden' name='followedid' value='".$row['userid']."'>
-                                    <input type='hidden' name='keyword' value='".$keyword."'>
-                                    <input type='hidden' name='userid' value='".$id."'>
-                                </div>
-                                </div>
-                            </form>";
-                } elseif ($count == 1) {
-                    echo "<div class='col-4 mb-3 user'>
-                            <div class='card text-left'>
-                                <div class='card-header '>
-                                    <div class='d-flex justify-content-center'>
-                                        <div class='image_outer_container'>
-                                            <div class='image_inner_container'>
-                                                <img src='uploads/".$row['picture']."'>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class='card-body'>
-                                    <h4 class='card-title'>".$row['username']."</h4>
-                                    <a href='profile.php?id=".$row['userid']."' class='btn btn-outline-danger w-25'>profile</a>
-                                </div>
-                            </div>
-                        </div>";
-                } else {
-                    continue;
-                }
-            }
-            ?>
+        <div class="row">
+            <div class="col-8 mx-auto mb-5 edit">
+                <div class="card">
+                    <div class="card-header">
+                        <h1>Add Post</h1>
+                    </div>
+                    <div class="card-body">
+                        <form action="action.php" method="post" enctype="multipart/form-data">
+                            <label for="">title</label>
+                            <input type="text" class="form-control mb-3" name="title">
+                            <label for="">vio</label>
+                            <textarea name="vio" id="" cols="30" rows="10" class="form-control"></textarea>
+                            <label for="">picture</label>
+                            <input type="file" class="form-control mb-5" name="image">
+                            <input type="hidden" name="id" value="<?php echo $id ?>">
+                            <button type="submit" class="btn btn-outline-primary form-control" name="addPost">Add!!</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
 
-
-
     </div>
-
 </body>

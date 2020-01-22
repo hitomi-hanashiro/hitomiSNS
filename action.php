@@ -81,6 +81,14 @@ if(isset($_POST['legister'])){
     $keyword = $_POST['keyword'];
     header("location:search.php?keyword=$keyword");
 
+}elseif(isset($_POST['followFollower'])){
+    $userid = $_POST['userid'];
+    $followedid = $_POST['followedid'];
+    $result = $Users->addFollow($userid,$followedid);
+    if($result == true){
+        header("location:followers.php");
+    }
+
 }elseif(isset($_POST['follow'])){
     $userid = $_POST['userid'];
     $followedid = $_POST['followedid'];
@@ -93,30 +101,70 @@ if(isset($_POST['legister'])){
 }elseif(isset($_POST['deleteFolow'])){
     $id = $_POST['followid'];
     $followedid = $_POST['followerid'];
-    $Users->deleteFollow($id,$followedid);
+    $result = $Users->deleteFollow($id,$followedid);
+
+    if($result == true){
+        header('location:follows.php');
+    }
 
 }elseif(isset($_POST['deleteFolower'])){
     $id = $_POST['followid'];
     $followedid = $_POST['followerid'];
-    $Users->deleteFollow($id,$followedid);
+    $result = $Users->deleteFollow($id,$followedid);
+
+    if($result == true){
+        header('location:followers.php');
+    }
 
 }elseif(isset($_POST['submitSentence'])){
     $sentence = $_POST['sentence'];
     $sendid = $_POST['sendid'];
     $receiveid = $_POST['receiveid'];
-    echo $receiveid,$sentence,$sendid;
     $result = $Users->addChat($sentence,$sendid,$receiveid);
    
     if($result == true){
-        
         header("location:homepageChat.php?id=$receiveid");
+    }
+
+}elseif(isset($_POST['submitSentenceProfile'])){
+    $sentence = $_POST['sentence'];
+    $sendid = $_POST['sendid'];
+    $receiveid = $_POST['receiveid'];
+    echo $sendid,$sentence,$receiveid;
+    $result = $Users->addChat($sentence,$sendid,$receiveid);
+    
+    if($result == true){
+        header("location:profile.php?id=$receiveid");
     }
 
 }elseif(isset($_POST['submitComment'])){
     $userid = $_POST['userid'];
     $comment = $_POST['comment'];
     $postid = $_POST['postid'];
-    $Users->addPostComment($userid,$comment,$postid);
+    $result = $Users->addPostComment($userid,$comment,$postid);
+    if($result = true){
+        header('location:homepage.php');
+    }
+
+}elseif(isset($_POST['submitCommentChat'])){
+    $userid = $_POST['userid'];
+    $comment = $_POST['comment'];
+    $postid = $_POST['postid'];
+    $friendid = $_POST['friendid'];
+    $result = $Users->addPostComment($userid,$comment,$postid);
+    if($result = true){
+        header("location:homepageChat.php?id=$friendid");
+    }
+
+}elseif(isset($_POST['submitCommentProfile'])){
+    $userid = $_POST['userid'];
+    $comment = $_POST['comment'];
+    $postid = $_POST['postid'];
+    $profileid = $_POST['profileid'];
+    $result = $Users->addPostComment($userid,$comment,$postid);
+    if($result = true){
+        header("location:profile.php?id=$profileid");
+    }
 
 }elseif(isset($_POST['niceSubmit'])){
     $postid = $_POST['postid'];
@@ -154,11 +202,11 @@ if(isset($_POST['legister'])){
     }
 
 }elseif(isset($_POST['allow'])){
-    $userid = $_POST['userid'];
-    $allowUserid = $_POST['allowUserid'];
+    $userid = $_POST['followerid'];
+    $allowUserid = $_POST['followid'];
     $result = $Users->addAllow($userid,$allowUserid);
     if($result == true){
-        header("location:check.php");
+        header("location:followers.php");
     }
 
 }elseif(isset($_POST['shareSubmit'])){
@@ -206,7 +254,7 @@ if(isset($_POST['legister'])){
         $Users->addGroupChat($groupChatName,$usersidRow,$picture,$groupid);
     }
 
-    header('location:groupChat.php');
+    header('location:homepage.php');
     
 }elseif(isset($_POST['submitGroupChatSentence'])){
     $groupid = $_POST['groupid'];
@@ -219,17 +267,26 @@ if(isset($_POST['legister'])){
     $Users->deleteGroupChat($userid,$groupid);
 }elseif(isset($_POST['inviteFriends'])){
     $groupid = $_POST['groupid'];
-    $userid = $_POST['usersid'];
+    $userid = $_POST['userid'];
     $picture = $_POST['picture'];
     $groupChatName = $_POST['groupChatName'];
-    foreach($userid as $usersRow){
-        $return = $Users->addGroupChat2($groupChatName,$usersRow,$picture,$groupid);
-    }
+    $return = $Users->addGroupChat2($groupChatName,$userid,$picture,$groupid);
+   
 
     if($return == true){
-        header('location:groupChat.php');
+        header("location:groupProfile.php?id=$groupid");
     }else{
         echo "youcantadd";
+    }
+}elseif(isset($_POST['makeChat'])){
+    $username = $_POST['username'];
+    $userid = $_POST['followerid'];
+    $friendid = $_POST['followid'];
+    $groupid = $groupid;
+    $result = $Users->addChat($username,$userid,$groupid,$friendid);
+
+    if($result == true){
+        header("location:homepageChat.php?id=$groupid");
     }
 }
 ?>

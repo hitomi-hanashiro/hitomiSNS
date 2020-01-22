@@ -8,7 +8,7 @@
 include 'action.php';
 $id = $_SESSION['userid'];
 $user = $Users->getUser($id);
-
+$friendid = $_GET['id'];
 // ポストのファンクション
 $follow = $Users->getfollows($id);
 foreach ($follow as $followRow) {
@@ -25,64 +25,30 @@ foreach ($follow as $followRow) {
 }
 
 foreach ($follows as $postsRow) {
-    // フォローしている仲間の情報ゲット
     $lockUser = $Users->getUser($postsRow['followedid']);
-    // もしプライベートアカウントなら
     if($lockUser['privacy'] == 'lock'){
-        //許可しているユーザーゲット
         $allow = $Users->getAllow($postsRow['followedid']);
         foreach($allow as $allowRow){
-            //もし許されているのなら
             if($allowRow['allowUserid'] == $id){
-                //そのユーザーのシェア全て取得
                 $share = $Users->getShare($postsRow['followedid']);
                 foreach($share as $shareRow){
-                    $postCount = 0;
-                    foreach($posts as $postsRow){
-                        //もしすでにポストの中にあったら
-                        if($postsRow['postid'] == $shareRow['postid']){
-                            $postCount++;
-                        }
-                    }
-                    //まだポストになかったら(カウントがゼロなら)
-                    if($postCount == 0){
-                        $posts[] = $Users->getPostAndUser($shareRow['postid']);
-                    }
-                
+                $posts[]= $Users->getPostAndUser($shareRow['postid']);
                 }
             }
         }
     }else{
         $share = $Users->getShare($postsRow['followedid']);
         foreach($share as $shareRow){
-            $postCount = 0;
-            foreach($posts as $postsRow){
-                //もしすでにポストの中にあったら
-                if($postsRow['postid'] == $shareRow['postid']){
-                    $postCount++;
-                }
-            }
-            if($postCount == 0){
-                $posts[] = $Users->getPostAndUser($shareRow['postid']);
-            }
+        $posts[] = $Users->getPostAndUser($shareRow['postid']);
         }
     }
+    
 }
+
 //　チャットのファンクション
-$followed = $Users->getfollowers($id);
-foreach ($followed as $followedRow) {
-    foreach ($follow as $followRow) {
-        if ($followedRow['userid'] == $followRow['followedid'] and $followedRow['userid'] !== $id) {
-            $friends[] = $Users->getUser($followRow['followedid']);
-        }
-    }
-}
+$groupid = $_GET['id'];
+$dialog = $Users->getGroupChatSentence($groupid);
 
-if (isset($_SESSION['friendid'])) {
-    $_POST['friendid'] = $_SESSION['friendid'];
-}
-
-$groupChat = $Users->getGroupChats($id);
 
 
 
@@ -97,6 +63,7 @@ $groupChat = $Users->getGroupChats($id);
     <link rel="stylesheet" href="styles/homepageChatfriend.css">
     <link href="https://fonts.googleapis.com/css?family=Rokkitt" rel="stylesheet">
     <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
 
 </head>
 
@@ -151,8 +118,8 @@ $groupChat = $Users->getGroupChats($id);
             </div>
         </div>
         <h1 class="username"><?php echo $user['username'] ?></h1>
-        
 
+        <!-- ここからポスト -->
         <div class="row">
             <div class="col-6">
                 <!-- post start -->
@@ -217,12 +184,10 @@ $groupChat = $Users->getGroupChats($id);
 
                                                     <li><a>
                                                             <?php
-                                                            if($id !== $postsRow['userid']){
-                                                                if ($myShare == 0) {
-                                                                    echo "<button class='btn p-0' type='submit' name='shareSubmit'><i class='far fa-share-square''>$shareAmount</i></button>";
-                                                                } else {
-                                                                    echo "<button class='btn p-0' type='submit' name='unShareSubmit'><i class='fas fa-share-square'>$shareAmount</i></button>";
-                                                                }
+                                                            if ($myShare == 0) {
+                                                                echo "<button class='btn p-0' type='submit' name='shareSubmit'><i class='far fa-share-square''>$shareAmount</i></button>";
+                                                            } else {
+                                                                echo "<button class='btn p-0' type='submit' name='unShareSubmit'><i class='fas fa-share-square'>$shareAmount</i></button>";
                                                             }
                                                             ?>
                                                         </a></li>
@@ -278,96 +243,60 @@ $groupChat = $Users->getGroupChats($id);
             </div>
             <!-- ここからチャット -->
 
-            <div class="col-6 mt-5">
+            <div class="col-6 mt-5 side_by_side" style="height: 800px; overflow: scroll;">
                 <?php
-                // フレンドチャット
-                foreach ($friends as $friendsRow) {
-                    //未読の取得
-                    $notYetSentence = $Users->getNorYetSentence($friendsRow['userid'], $id);
-                    $latestSentence = $Users->latestSentence($friendsRow['userid'], $id);
-                    $sentenceCount = 0;
-                    foreach ($notYetSentence as $notYetSentenceKey => $notYetSentenceRow) {
-                        $sentenceCount++;
-                    }
-                    //時間の計算
-                    $userLoginTime = $Users->getUsersLoginTime($id);
-                    $friendLoginTime = $Users->getUsersLoginTime($friendsRow['userid']);
-
-                    $userTime = $userLoginTime['time'];
-                    $friendTime = $friendLoginTime['time'];
-
-                    $timeStamp1 = strtotime($userTime);
-                    $timeStamp2 = strtotime($friendTime);
-
-                    $time = $timeStamp1 - $timeStamp2;
-
-                    echo " <div class='row'>
-                                    <form class='col-12 alert alert-secondary mb-3' method='post'>
-                                    <input type='hidden' name='friendid' value='" . $friendsRow['userid'] . "'>
-                                    <div class='pull-left mr-2'>
-                                        <a href='profile.php?id=".$friendsRow['userid']."'  class='d-block'><img src='uploads/" . $friendsRow['picture'] . "' class='media-object dp img-circle' style='width: 100px;height:100px;'></a>
-                                        <a href='homepageChat.php?id=".$friendsRow['userid']."' class='btn btn-secondary'>chat</a>
-                                    </div>
-                                    <div class='pull-right number_notyet mr-2'><h1>$sentenceCount</h1></div>
-                                    <h1>" . $friendsRow['username'] . "</h1>
-                                    <p>" . $latestSentence['sentence'] . "</p>
-                                    <h3>";
-                    //時間の計算
-                    if ($time > 60 * 60 * 24) {
-                        echo "over 1 day</h3>";
-                    } elseif ($time > 60 * 60) {
-                        $hTime = $time / 3600;
-                        $mTime = $time % 3600 / 60;
-                        $sTime = $time % 3600 % 60;
-                        echo "before " . floor($hTime) . "h" . floor($mTime) . "m" . floor($sTime) . "s</h3>";
-                    } elseif ($time > 60) {
-                        $mTime = $time / 60;
-                        $stime = $time % 60;
-                        echo "before " . floor($mTime) . "m" . floor($sTime) . "s</h3>";
-                    } else {
-                        echo "before " . $time . "s</h3>";
-                    }
-
-                    echo  "</h3>
-                                </form>
-                                </div>";
-                }
-
-                // グループチャット
-                foreach($groupChat as $groupChatKey => $groupChatRow){
-                    // 最新のセンテンス
-                    $latestGroupChatSentence = $Users->latestGroupChatSentence($groupChatRow['groupid']);
-                    //未読のカウント
-                    $notYetCount = 0;
-                    //そのグループのセンテンス全て取得
-                    $sentence = $Users->getGroupChatSentence($groupChatRow['groupid']);
-                    foreach($sentence as  $sectencdKey =>  $sentenceRow){
-                      //送り主が自分以外の時
-                      if($sentenceRow['userid'] !==  $id){
-                        //既読済みのセンテンス取得
-                        $alreadySentence = $Users->getCheckGroupChatSentence($id,$sentenceRow['groupChatSentenceid']);
-                        //既読済みでない時
-                        if($sentenceRow['groupChatSentenceid'] !== $alreadySentence['groupChatSentenceid']){
-                          $notYetCount++;
+                echo "<div class='row rounded-lg overflow-hidden shadow'>
+                                <div class='col-12 px-0'>
+                                <div class='bg-white'>";
+                foreach ($dialog as $dialogRow) {
+                    $user = $Users->getUser($dialogRow['userid']);
+                    $check = $Users->getGroupChatsSentenceCheck($dialogRow['groupChatSentenceid']);
+                    $checkAmount = 0;
+                    $checkSwitch = 0;
+                    foreach($check as $checkKey => $checkRow){
+                        $checkAmount++;
+                        if($checkRow['userid'] == $id){
+                            $checkSwitch++;
                         }
-                      }
                     }
-                    echo " <div class='row'>
-                            <form class='col-12 alert alert-success mb-3' method='post'>
-                            <div class='pull-left mr-2'>
-                                <a href='groupProfile.php?id=".$groupChatRow['groupid']."'  class='d-block'><img src='uploads/" . $groupChatRow['groupChatPicture'] . "' class='media-object dp img-circle' style='width: 100px;height:100px;'></a>
-                                <a href='homepageGroupChat.php?id=".$groupChatRow['groupid']."' class='btn btn-secondary'>chat</a>
-                                <input type='hidden' name='userid' value='$id'>
-                                <input type='hidden' name='groupid' value='".$groupChatRow['groupid']."'>
-                                <button class='btn btn-outline-danger' type='submit' name='deleteGroupChat'>delete</button>
-                            </div>
-                            <div class='pull-right number_notyet mr-2'><h1>$notYetCount</h1></div>
-                            <h1>" . $groupChatRow['groupChatName'] . "</h1>
-                            <p>" . $latestGroupChatSentence['groupChatSentence'] . "</p>
-                            </form>
-                            </div>";
+                    if ($dialogRow['userid'] == $id) {
+                        echo "<div class='media w-50 ml-auto mb-3'>
+                                        <div class='media-body'>
+                                            <div class='bg-primary rounded py-2 px-3 mb-2'>
+                                                <p class='text-small mb-0 text-white'>" . $dialogRow['groupChatSentence'] . "</p>
+                                            </div>";
+                        if ($checkAmount >= 1) {
+                            echo "<p class='small text-muted'>$checkAmount</p>";
+                        }
+                        echo "</div>
+                                    </div>";
+                    } else {
+                        if($checkSwitch == 0){
+                            $Users->addGroupChatSentenceCheck($dialogRow['groupChatSentenceid'],$id,$dialogRow['groupid']);
+                        }
+                        echo "<div class='media w-50 mb-3'><img src='uploads/" . $user['picture'] . "' alt='user' width='50' class='rounded-circle'>
+                                        <div class='media-body ml-3'>
+                                            <div class='bg-light rounded py-2 px-3 mb-2'>
+                                                <p class='text-small mb-0 text-muted'>" . $dialogRow['groupChatSentence'] . "</p>
+                                            </div>
+                                        </div>
+                                    </div>";
+                    }
                 }
-            
+                echo "  <form action='action.php' method='post' class='bg-light'>
+                                    <div class='input-group'>
+                                        <input type='text' name='sentence' placeholder='Type a message' aria-describedby='button-addon2' class='form-control rounded-0 border-0 py-4 bg-light'>
+                                        <input type='hidden' name='userid' value='$id'>
+                                        <input type='hidden' name='groupid' value='$groupid'>
+                                        <div class='input-group-append'>
+                                            <button id='button-addon2' type='submit' class='btn btn-link' name='submitGroupChatSentence'> <i class='fa fa-paper-plane' ></i></button>
+                                        </div>
+                                    </div>
+                                </form>
+                                </div>
+                                </div>  
+                                </div>
+                                <a class='btn btn-outline-primary' href='homepage.php'>back</button>";
                 ?>
 
 

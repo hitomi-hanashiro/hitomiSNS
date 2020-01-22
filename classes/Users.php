@@ -36,8 +36,9 @@ class Users extends Database{
     }
 
     public function addFollow($userid,$followedid){
-        $sql = "INSERT INTO follow(userid,followedid)VALUES('$userid','$followedid')";
-        $result = $this->conn->query($sql);
+        $sql = "INSERT INTO follow(userid,followedid)VALUES('$userid','$followedid');
+                INSERT INTO latestChat(sendid,receivedid)VALUES('$userid','$followedid')";
+        $result = $this->conn->multi_query($sql);
 
         if($result == false){
             die('YOU CANT FOLLOW'.$this->conn->connect_error);
@@ -47,7 +48,10 @@ class Users extends Database{
     }
 
     public function addChat($sentence,$sendid,$receiveid){
-        $sql = "INSERT INTO chat(sentence,sendid,receiveid,sendTime)VALUES('$sentence','$sendid','$receiveid',NOW())";
+        $sql = "INSERT INTO chat(sentence,sendid,receiveid,sendTime)VALUES('$sentence','$sendid','$receiveid',NOW());
+                -- UPDATE latestChat SET latestTime = NOW() WHERE sendid = '$sendid' AND receivedid = '$receiveid'; 
+                -- UPDATE latestChat SET latestTime = NOW() WHERE sendid = '$receiveid' AND receivedid = '$sendid'";
+                
         $result = $this->conn->query($sql);
 
         if($result == false){
@@ -64,7 +68,7 @@ class Users extends Database{
         if($result == false){
             die('YOU CANT SEND'.$this->conn->connect_error);
         }else{
-            header("location:postChat.php?id=$postid");
+           return true;
         }   
     }
 
@@ -138,13 +142,14 @@ class Users extends Database{
 }
 
     public function addGroupChatSentence($groupid,$userid,$groupChatSentence){
-        $sql = "INSERT INTO groupChatSentence(groupid,userid,groupChatSentence,groupChatCheck)VALUES('$groupid','$userid','$groupChatSentence','0')";
-        $result = $this->conn->query($sql);
+        $sql = "INSERT INTO groupChatSentence(groupid,userid,groupChatSentence,sendTime)VALUES('$groupid','$userid','$groupChatSentence',NOW());
+                    UPDATE groupChat SET latestTime = NOW() WHERE groupid = '$groupid'";
+        $result = $this->conn->multi_query($sql);
 
         if($result == false){
-            die('YOU CANT SEND'.$this->conn->connect_error);
+            die('YOU CANT SED'.$this->conn->connect_error);
         }else{
-            header("location:GroupChatFriend.php?id=$groupid");
+            header("location:homepageGroupChat.php?id=$groupid");
         }
     }
 
@@ -160,6 +165,17 @@ class Users extends Database{
     }
 
 
+
+    public function getUserAndLatestTime($friend,$id){
+        $sql = "SELECT * FROM latestChat INNER JOIN user ON latestChat.sendid = user.userid WHERE latestChat.sendid = '$friend' AND latestChat.receivedid ='$id' ORDER BY latestTime DESC ";
+        $result = $this->conn->query($sql);
+
+        if($result->num_rows>0){
+            return $result->fetch_assoc();
+        }else{
+            return false;
+        }
+    }
 
     public function getUser($id){
         $sql = "SELECT * FROM user WHERE userid = '$id'";
@@ -398,11 +414,7 @@ class Users extends Database{
         $result = $this->conn->query($sql);
 
         if($result->num_rows>0){
-            $row = array();
-            while($rows = $result->fetch_assoc()){
-                $row[] = $rows;
-            }
-            return $row;
+            return $result->fetch_assoc();
         }else{
             return false;
         }
@@ -480,7 +492,18 @@ class Users extends Database{
     }
 
     public function latestSentence($sendid,$receiveid){
-        $sql = "SELECT * FROM chat WHERE sendid = '$sendid' AND receiveid = '$receiveid' LIMIT 1";
+        $sql = "SELECT * FROM chat WHERE sendid = '$sendid' AND receiveid = '$receiveid' ORDER BY chatid DESC LIMIT 1";
+        $result = $this->conn->query($sql);
+
+        if($result->num_rows>0){
+            return $result->fetch_assoc();
+        }else{
+            return false;
+        }
+    }
+
+    public function latestGroupChatSentence($groupid){
+        $sql = "SELECT * FROM groupChatSentence WHERE groupid = '$groupid' ORDER BY groupChatSentenceid DESC LIMIT 1";
         $result = $this->conn->query($sql);
 
         if($result->num_rows>0){
@@ -502,7 +525,7 @@ class Users extends Database{
     }
 
     public function getGroupChats($userid){
-        $sql = "SELECT * FROM groupChat WHERE userid = '$userid' ";
+        $sql = "SELECT * FROM groupChat WHERE userid = '$userid' ORDER BY latestTime DESC ";
         $result = $this->conn->query($sql);
 
         if($result->num_rows>0){
@@ -614,7 +637,7 @@ class Users extends Database{
         if($result == false){
             die('YOU CANT DELETE'.$this->conn->connect_error);
         }else{
-            header('location:follow.php');
+            return true;
         }
     }
 
@@ -656,7 +679,7 @@ class Users extends Database{
         if($result == false){
             die('YOU CANT DELETE'.$this->conn->connect_error);
         }else{
-            header('location:groupChat.php');
+            header('location:homepage.php');
         }
     }
 

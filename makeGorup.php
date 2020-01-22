@@ -11,6 +11,20 @@ $user = $Users->getUser($id);
 $keyword = $_GET['keyword'];
 $users = $Users->getFriends($keyword);
 $followsid = $Users->getfollows($id);
+
+$followed = $Users->getfollowers($id);
+foreach ($followed as $followedRow) {
+    foreach ($followsid as $followRow) {
+        if ($followedRow['userid'] == $followRow['followedid'] and $followedRow['userid'] !== $id) {
+            $friends[] = $Users->getUser($followRow['followedid']);
+        }
+    }
+}
+
+$latestGroup = $Users->getLatestGroupChats();
+$groupid = $latestGroup['groupid'];
+$groupid = $groupid + 1;
+
 ?>
 
 <head>
@@ -21,6 +35,7 @@ $followsid = $Users->getfollows($id);
     <link rel="stylesheet" href="styles/homepageChat.css">
     <link rel="stylesheet" href="styles/homepageChatfriend.css">
     <link rel="stylesheet" href="styles/search.css">
+    <link rel="stylesheet" href="styles/makeGroup.css">
     <link href="https://fonts.googleapis.com/css?family=Rokkitt" rel="stylesheet">
     <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
 
@@ -69,8 +84,7 @@ $followsid = $Users->getfollows($id);
         <!-- youser icon -->
         <div class="d-flex justify-content-center">
             <div class="image_outer_container">
-                <div class="green_icon"></div>
-                <a href='profile.php?id=<?php echo $id?>'>               
+                <a href='profile.php?id=<?php echo $id ?>'>
                     <div class="image_inner_container">
                         <img src='uploads/<?php echo $user['picture'] ?>'>
                     </div>
@@ -79,65 +93,44 @@ $followsid = $Users->getfollows($id);
         </div>
         <h1 class="username mb-5"><?php echo $user['username'] ?></h1>
 
-        <div class='row mt-5'>
-            <?php
-
-            foreach ($users as $key => $row) {
-                $count = 0;
-                foreach ($followsid as $keys => $rows) {
-                    if ($rows['followedid'] == $row['userid']) {
-                        $count++;
-                    } elseif ($user['userid'] == $row['userid']) {
-                        $count += 2;
-                    } else {
-                        continue;
-                    }
-                }
-                if ($count == 0) {
-                    echo "<form class='col-4 mb-3' action='action.php' method='post'>
-                            <div class='card text-left user'>
-                                <div class='card-header '>
-                                    <div class='d-flex justify-content-center'>
-                                        <div class='image_outer_container'>
-                                            <div class='image_inner_container'>
-                                                <img src='uploads/".$row['picture']."'>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class='card-body'>
-                                    <h4 class='card-title'>".$row['username']."</h4>
-                                    <button class='btn btn-outline-primary w-25 mr-3' type='submit' name='follow'>follow</button>
-                                    <a href='profile.php?id=".$row['userid']."' class='btn btn-outline-danger w-25'>profile</a>
-                                    <input type='hidden' name='followedid' value='".$row['userid']."'>
-                                    <input type='hidden' name='keyword' value='".$keyword."'>
-                                    <input type='hidden' name='userid' value='".$id."'>
-                                </div>
-                                </div>
-                            </form>";
-                } elseif ($count == 1) {
-                    echo "<div class='col-4 mb-3 user'>
-                            <div class='card text-left'>
-                                <div class='card-header '>
-                                    <div class='d-flex justify-content-center'>
-                                        <div class='image_outer_container'>
-                                            <div class='image_inner_container'>
-                                                <img src='uploads/".$row['picture']."'>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class='card-body'>
-                                    <h4 class='card-title'>".$row['username']."</h4>
-                                    <a href='profile.php?id=".$row['userid']."' class='btn btn-outline-danger w-25'>profile</a>
-                                </div>
+        <!-- ここからグループ作るやつ -->
+        <div class="row">
+            <div class="col-8 mx-auto mb-5 edit">
+                <div class="card">
+                    <div class="card-header">
+                        <h1>Add Post</h1>
+                    </div>
+                    <div class="card-body">
+                        <form action="action.php" method="post" enctype="multipart/form-data">
+                            <label for="">Group Name</label>
+                            <input type="text" class="form-control mb-3" name="groupChatName">
+                            <label for="">picture</label>
+                            <input type="file" class="form-control mb-5" name="image">
+                            <input type="hidden" name="myid" value='<?php echo $id?>'>
+                            <input type="hidden" name="groupid" value='<?php echo $groupid?>'>
+                            
+                            <div class='row mb-4'>
+                                <?php
+                                    foreach($friends as $friendsRow){
+                                        echo "
+                                                <div class='col-2 boxes p-2 ml-5'>
+                                                    <div class='clearfix'>
+                                                    <img src='uploads/".$friendsRow['picture']."' class='pull-left friend_image d-block'>
+                                                    </div>
+                                                    <div class='clearfix'>
+                                                    <input type='checkbox' name='usersid[]' id='box-".$friendsRow['userid']."' value='".$friendsRow['userid']."'>
+                                                    <label for='box-".$friendsRow['userid']."'>".$friendsRow['username']."</label>
+                                                    </div>
+                                                </div>";
+                                    }
+                                ?>
                             </div>
-                        </div>";
-                } else {
-                    continue;
-                }
-            }
-            ?>
+                            
+                            <button type="submit" class="btn btn-outline-primary form-control" name="makeGroupChat">Add!!</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
 
 

@@ -21,6 +21,7 @@ $followsid = $Users->getfollows($id);
     <link rel="stylesheet" href="styles/homepageChat.css">
     <link rel="stylesheet" href="styles/homepageChatfriend.css">
     <link rel="stylesheet" href="styles/search.css">
+    <link rel="stylesheet" href="styles/edit.css">
     <link href="https://fonts.googleapis.com/css?family=Rokkitt" rel="stylesheet">
     <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
 
@@ -70,77 +71,39 @@ $followsid = $Users->getfollows($id);
         <div class="d-flex justify-content-center">
             <div class="image_outer_container">
                 <div class="green_icon"></div>
-                <a href='profile.php?id=<?php echo $id?>'>               
-                    <div class="image_inner_container">
-                        <img src='uploads/<?php echo $user['picture'] ?>'>
-                    </div>
-                </a>
+                <div class="image_inner_container">
+                    <img src='uploads/<?php echo $user['picture'] ?>'>
+                </div>
             </div>
         </div>
         <h1 class="username mb-5"><?php echo $user['username'] ?></h1>
 
-        <div class='row mt-5'>
-            <?php
+        <!-- ここから編集フォーム -->
+        <div class="row">
+            <div class="col-8 mx-auto">
+                <div class="card edit mb-5">
+                    <div class="card-header">
+                        <h1>edit</h1>
+                    </div>
+                    <div class="card-body">
+                        <form action="action.php" method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="id" value="<?php echo $id?>">
+                            <label>User Name:</label>
+                            <input type="text" name="username" id="fname" value='<?php echo $user['usename']?>' class="form-control mb-3">
+                            <label for="">password</label>
+                            <input type="password" name="password" id="password" value='<?php echo $user['password']?>' class="form-control mb-3">
+                            <label for="">picture:</label>
+                            <input type="file" name="image" id="picture" class="form-control mb-3">
+                            <label class="gender">Privacy:</label>
+                            <input type="radio" name="privacy"  id="gender" value="lock"> Lock</input>
+                            <input type="radio"  name="privacy" id="gender" value="unlock" > Unlock</input>
 
-            foreach ($users as $key => $row) {
-                $count = 0;
-                foreach ($followsid as $keys => $rows) {
-                    if ($rows['followedid'] == $row['userid']) {
-                        $count++;
-                    } elseif ($user['userid'] == $row['userid']) {
-                        $count += 2;
-                    } else {
-                        continue;
-                    }
-                }
-                if ($count == 0) {
-                    echo "<form class='col-4 mb-3' action='action.php' method='post'>
-                            <div class='card text-left user'>
-                                <div class='card-header '>
-                                    <div class='d-flex justify-content-center'>
-                                        <div class='image_outer_container'>
-                                            <div class='image_inner_container'>
-                                                <img src='uploads/".$row['picture']."'>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class='card-body'>
-                                    <h4 class='card-title'>".$row['username']."</h4>
-                                    <button class='btn btn-outline-primary w-25 mr-3' type='submit' name='follow'>follow</button>
-                                    <a href='profile.php?id=".$row['userid']."' class='btn btn-outline-danger w-25'>profile</a>
-                                    <input type='hidden' name='followedid' value='".$row['userid']."'>
-                                    <input type='hidden' name='keyword' value='".$keyword."'>
-                                    <input type='hidden' name='userid' value='".$id."'>
-                                </div>
-                                </div>
-                            </form>";
-                } elseif ($count == 1) {
-                    echo "<div class='col-4 mb-3 user'>
-                            <div class='card text-left'>
-                                <div class='card-header '>
-                                    <div class='d-flex justify-content-center'>
-                                        <div class='image_outer_container'>
-                                            <div class='image_inner_container'>
-                                                <img src='uploads/".$row['picture']."'>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class='card-body'>
-                                    <h4 class='card-title'>".$row['username']."</h4>
-                                    <a href='profile.php?id=".$row['userid']."' class='btn btn-outline-danger w-25'>profile</a>
-                                </div>
-                            </div>
-                        </div>";
-                } else {
-                    continue;
-                }
-            }
-            ?>
+                            <button name="editUser" class="btn btn-outline-primary text-center d-block w-25 mx-auto" type="submit">Submit</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
-
-
 
     </div>
 

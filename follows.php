@@ -8,9 +8,23 @@
 include 'action.php';
 $id = $_SESSION['userid'];
 $user = $Users->getUser($id);
-$keyword = $_GET['keyword'];
-$users = $Users->getFriends($keyword);
-$followsid = $Users->getfollows($id);
+
+$follow = $Users->getfollows($id);
+foreach ($follow as $followRow){
+    if ($followRow['followedid'] !== $id) {
+        $follows[] = $followRow;
+    }
+}
+
+$latestGroup = $Users->getLatestGroupChats();
+$groupid = $latestGroup['groupid'];
+$groupid = $groupid + 1;
+
+
+
+
+
+
 ?>
 
 <head>
@@ -20,7 +34,7 @@ $followsid = $Users->getfollows($id);
     <link rel="stylesheet" href="styles/homepage.css">
     <link rel="stylesheet" href="styles/homepageChat.css">
     <link rel="stylesheet" href="styles/homepageChatfriend.css">
-    <link rel="stylesheet" href="styles/search.css">
+    <link rel="stylesheet" href="styles/edit.css">
     <link href="https://fonts.googleapis.com/css?family=Rokkitt" rel="stylesheet">
     <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
 
@@ -77,65 +91,36 @@ $followsid = $Users->getfollows($id);
                 </a>
             </div>
         </div>
-        <h1 class="username mb-5"><?php echo $user['username'] ?></h1>
+        <h1 class="username"><?php echo $user['username'] ?></h1>
 
+        <!-- ここからuser画面 -->
         <div class='row mt-5'>
             <?php
 
-            foreach ($users as $key => $row) {
-                $count = 0;
-                foreach ($followsid as $keys => $rows) {
-                    if ($rows['followedid'] == $row['userid']) {
-                        $count++;
-                    } elseif ($user['userid'] == $row['userid']) {
-                        $count += 2;
-                    } else {
-                        continue;
-                    }
-                }
-                if ($count == 0) {
-                    echo "<form class='col-4 mb-3' action='action.php' method='post'>
+            foreach ($follows as $key => $row) {
+                $user = $Users->getUser($row['followedid']);
+                echo "<form class='col-4 mb-3 edit' action='action.php' method='post'>
                             <div class='card text-left user'>
                                 <div class='card-header '>
                                     <div class='d-flex justify-content-center'>
                                         <div class='image_outer_container'>
                                             <div class='image_inner_container'>
-                                                <img src='uploads/".$row['picture']."'>
+                                                <img src='uploads/" . $user['picture'] . "'>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                                 <div class='card-body'>
-                                    <h4 class='card-title'>".$row['username']."</h4>
-                                    <button class='btn btn-outline-primary w-25 mr-3' type='submit' name='follow'>follow</button>
-                                    <a href='profile.php?id=".$row['userid']."' class='btn btn-outline-danger w-25'>profile</a>
-                                    <input type='hidden' name='followedid' value='".$row['userid']."'>
-                                    <input type='hidden' name='keyword' value='".$keyword."'>
-                                    <input type='hidden' name='userid' value='".$id."'>
+                                    <h4 class='card-title'>" . $user['username'] . "</h4>
+                                    <a href='profile.php?id=" . $user['userid'] . "' class='btn btn-outline-warning w-25'>profile</a>
+                                    <button class='btn btn-outline-danger w-25 mr-3' type='submit' name='deleteFolow'>Delete</button>
+                                    <button class='btn btn-outline-primary w-75 ml-4 mt-1' type='submit' name='makeChat'>Chat</button>
+                                    <input type='hidden' name='followerid' value='" . $user['userid'] . "'>
+                                    <input type='hidden' name='username' value='" . $user['username'] . "'>
+                                    <input type='hidden' name='followid' value='" . $id . "'>
                                 </div>
                                 </div>
                             </form>";
-                } elseif ($count == 1) {
-                    echo "<div class='col-4 mb-3 user'>
-                            <div class='card text-left'>
-                                <div class='card-header '>
-                                    <div class='d-flex justify-content-center'>
-                                        <div class='image_outer_container'>
-                                            <div class='image_inner_container'>
-                                                <img src='uploads/".$row['picture']."'>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class='card-body'>
-                                    <h4 class='card-title'>".$row['username']."</h4>
-                                    <a href='profile.php?id=".$row['userid']."' class='btn btn-outline-danger w-25'>profile</a>
-                                </div>
-                            </div>
-                        </div>";
-                } else {
-                    continue;
-                }
             }
             ?>
         </div>
@@ -143,5 +128,4 @@ $followsid = $Users->getfollows($id);
 
 
     </div>
-
 </body>
