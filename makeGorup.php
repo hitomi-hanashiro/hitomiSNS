@@ -48,30 +48,30 @@ $groupid = $groupid + 1;
     <div class="container">
         <!-- navi bar -->
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <a class="navbar-brand" href="homepage.php">HOME</a>
+          <a class="navbar-brand" href="homepage.php"><i class="fas fa-home">HOME</i></a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav mr-auto">
+            <ul class="navbar-nav mr-auto">
                     <li class="nav-item active">
-                        <a class="nav-link" href="addpost.php">Add Post <span class="sr-only">(current)</span></a>
+                        <a class="nav-link" href="addpost.php"><i class="fas fa-plus-square">AddPost</i><span class="sr-only">(current)</span></a>
                     </li>
                     <li class="nav-item active">
-                        <a class="nav-link" href="makeGorup.php">make Group Chat <span class="sr-only">(current)</span></a>
+                        <a class="nav-link" href="makeGorup.php"><i class="fas fa-users">Group</i><span class="sr-only">(current)</span></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="follows.php">Follows</a>
+                        <a class="nav-link" href="follows.php"><i class="fas fa-user">Follows</i></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="followers.php">Followers</a>
+                        <a class="nav-link" href="followers.php"><i class="far fa-user">Followers</i></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link disabled" href="edit.php">Edit</a>
+                        <a class="nav-link disabled" href="edit.php"><i class="fas fa-user-edit">edit</i></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link disabled" href="logout.php">logout</a>
+                        <a class="nav-link disabled" href="logout.php"><i class="fas fa-sign-out-alt">logout</i></a>
                     </li>
                 </ul>
                 <form class="form-inline my-2 my-lg-0" action="action.php" method="post">

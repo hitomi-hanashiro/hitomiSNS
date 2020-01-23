@@ -69,14 +69,24 @@ foreach ($follows as $postsRow) {
     }
 }
 //　チャットのファンクション
-$followed = $Users->getfollowers($id);
-foreach ($followed as $followedRow) {
-    foreach ($follow as $followRow) {
-        if ($followedRow['userid'] == $followRow['followedid'] and $followedRow['userid'] !== $id) {
-            $friends[] = $Users->getUser($followRow['followedid']);
+
+$follow = $Users->getOrderedChat($id);
+foreach($follow as $followRow){
+    $count = 0;
+    foreach($friends as $friendsRow){
+        if($friendsRow['userid'] == $followRow['receiveid'] OR $friendsRow['userid'] == $followRow['sendid']){
+            $count = 1;
+        }
+    }
+    if($count == 0){
+        if($followRow['sendid'] == $id){
+            $friends[] = $Users->getUser($followRow['receiveid']);
+        }else{
+            $friends[] = $Users->getUser($followRow['sendid']);
         }
     }
 }
+
 
 if (isset($_SESSION['friendid'])) {
     $_POST['friendid'] = $_SESSION['friendid'];
@@ -106,7 +116,7 @@ $groupChat = $Users->getGroupChats($id);
     <div class="container">
         <!-- navi bar -->
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <a class="navbar-brand" href="homepage.php">HOME</a>
+            <a class="navbar-brand" href="homepage.php"><i class="fas fa-home">HOME</i></a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -114,22 +124,22 @@ $groupChat = $Users->getGroupChats($id);
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav mr-auto">
                     <li class="nav-item active">
-                        <a class="nav-link" href="addpost.php">Add Post <span class="sr-only">(current)</span></a>
+                        <a class="nav-link" href="addpost.php"><i class="fas fa-plus-square">AddPost</i><span class="sr-only">(current)</span></a>
                     </li>
                     <li class="nav-item active">
-                        <a class="nav-link" href="makeGorup.php">make Group Chat <span class="sr-only">(current)</span></a>
+                        <a class="nav-link" href="makeGorup.php"><i class="fas fa-users">Group</i><span class="sr-only">(current)</span></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="follows.php">Follows</a>
+                        <a class="nav-link" href="follows.php"><i class="fas fa-user">Follows</i></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="followers.php">Followers</a>
+                        <a class="nav-link" href="followers.php"><i class="far fa-user">Followers</i></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link disabled" href="edit.php">Edit</a>
+                        <a class="nav-link disabled" href="edit.php"><i class="fas fa-user-edit">edit</i></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link disabled" href="logout.php">logout</a>
+                        <a class="nav-link disabled" href="logout.php"><i class="fas fa-sign-out-alt">logout</i></a>
                     </li>
                 </ul>
                 <form class="form-inline my-2 my-lg-0" action="action.php" method="post">
@@ -278,7 +288,7 @@ $groupChat = $Users->getGroupChats($id);
             </div>
             <!-- ここからチャット -->
 
-            <div class="col-6 mt-5">
+            <div class="col-6" style='margin-top: 100px;'>
                 <?php
                 // フレンドチャット
                 foreach ($friends as $friendsRow) {
@@ -302,15 +312,19 @@ $groupChat = $Users->getGroupChats($id);
                     $time = $timeStamp1 - $timeStamp2;
 
                     echo " <div class='row'>
-                                    <form class='col-12 alert alert-secondary mb-3' method='post'>
+                                    <form class='col-12 alert alert-light mb-3' method='post'>
                                     <input type='hidden' name='friendid' value='" . $friendsRow['userid'] . "'>
                                     <div class='pull-left mr-2'>
                                         <a href='profile.php?id=".$friendsRow['userid']."'  class='d-block'><img src='uploads/" . $friendsRow['picture'] . "' class='media-object dp img-circle' style='width: 100px;height:100px;'></a>
-                                        <a href='homepageChat.php?id=".$friendsRow['userid']."' class='btn btn-secondary'>chat</a>
+                                        <a href='homepageChat.php?id=".$friendsRow['userid']."'><i class='fas fa-comment fa-2x chat_icon'></i></a>
                                     </div>
                                     <div class='pull-right number_notyet mr-2'><h1>$sentenceCount</h1></div>
                                     <h1>" . $friendsRow['username'] . "</h1>
-                                    <p>" . $latestSentence['sentence'] . "</p>
+                                    <p ";
+                                    if($latestSentence['chatCheck'] == 'notcheck' AND $latestSentence['receiveid'] == $id){
+                                        echo "style='font-weight:bold; font-size: 20px;'";
+                                    }
+                    echo            ">" . $latestSentence['sentence'] . "</p>
                                     <h3>";
                     //時間の計算
                     if ($time > 60 * 60 * 24) {

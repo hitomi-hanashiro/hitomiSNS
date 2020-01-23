@@ -47,7 +47,7 @@ $groupid = $groupid + 1;
     <div class="container">
         <!-- navi bar -->
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <a class="navbar-brand" href="homepage.php">HOME</a>
+             <a class="navbar-brand" href="homepage.php"><i class="fas fa-home">HOME</i></a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -55,23 +55,24 @@ $groupid = $groupid + 1;
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav mr-auto">
                     <li class="nav-item active">
-                        <a class="nav-link" href="addpost.php">Add Post <span class="sr-only">(current)</span></a>
+                        <a class="nav-link" href="addpost.php"><i class="fas fa-plus-square">AddPost</i><span class="sr-only">(current)</span></a>
                     </li>
                     <li class="nav-item active">
-                        <a class="nav-link" href="makeGorup.php">make Group Chat <span class="sr-only">(current)</span></a>
+                        <a class="nav-link" href="makeGorup.php"><i class="fas fa-users">Group</i><span class="sr-only">(current)</span></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="follows.php">Follows</a>
+                        <a class="nav-link" href="follows.php"><i class="fas fa-user">Follows</i></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="followers.php">Followers</a>
+                        <a class="nav-link" href="followers.php"><i class="far fa-user">Followers</i></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link disabled" href="edit.php">Edit</a>
+                        <a class="nav-link disabled" href="edit.php"><i class="fas fa-user-edit">edit</i></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link disabled" href="logout.php">logout</a>
+                        <a class="nav-link disabled" href="logout.php"><i class="fas fa-sign-out-alt">logout</i></a>
                     </li>
+                </ul>
                 </ul>
                 <form class="form-inline my-2 my-lg-0" action="action.php" method="post">
                     <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search" name="keyword">
@@ -114,7 +115,6 @@ $groupid = $groupid + 1;
                                     <h4 class='card-title'>" . $user['username'] . "</h4>
                                     <a href='profile.php?id=" . $user['userid'] . "' class='btn btn-outline-warning w-25'>profile</a>
                                     <button class='btn btn-outline-danger w-25 mr-3' type='submit' name='deleteFolow'>Delete</button>
-                                    <button class='btn btn-outline-primary w-75 ml-4 mt-1' type='submit' name='makeChat'>Chat</button>
                                     <input type='hidden' name='followerid' value='" . $user['userid'] . "'>
                                     <input type='hidden' name='username' value='" . $user['username'] . "'>
                                     <input type='hidden' name='followid' value='" . $id . "'>

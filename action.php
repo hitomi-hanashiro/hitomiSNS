@@ -8,6 +8,11 @@ if(isset($_POST['legister'])){
     $password = $_POST['password'];
     $picture = $_FILES['image']['name'];
     $privacy = $_POST['privacy'];
+    $email = $_POST['email'];
+
+    $TOKEN_LENGTH = 16;
+    $bytes = openssl_random_pseudo_bytes($TOKEN_LENGTH);
+    $token = bin2hex($bytes);
 
     $users = $Users->getAllUser();
     $point = 0;
@@ -20,10 +25,20 @@ if(isset($_POST['legister'])){
     }
 
     if($point == 0){
-        $userid = $Users->addUser($username,$password,$picture,$privacy);
-        $Users->addFollow($userid,$userid);
-        $Users->addAllow($userid,$userid);
-        header('location:login.php');
+        $userid = $Users->addPreUser($username,$password,$picture,$key,$email,$token);
+        $pre_user = $Users->getPreUser($userid);
+        if($pre_user->num_rows>0){
+            $to = $pre_user['email'];
+            $subject = "Legister";
+            $message = "This is url to Legister Page.\r\nhttp://localhost:8888/hitomiSNS/legister.php?token=".$pre_user['token']."";
+            $headers = "From: from@example.com";
+            mail($to, $subject, $message, $headers);
+
+            header('location:waitPage.php');
+        }
+        // $Users->addFollow($userid,$userid);
+        // $Users->addAllow($userid,$userid);
+        // header('location:login.php');
     }else{
         echo "Alredy this name or password is used";
     }

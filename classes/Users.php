@@ -2,11 +2,11 @@
 include 'Database.php';
 class Users extends Database{
 
-    public function addUser($username,$password,$picture,$key){
+    public function addPreUser($username,$password,$picture,$key,$email,$token){
         $picture =  $_FILES['image']['name'];
         $target_dir =  'uploads/';
         $target_file = $target_dir.basename($picture);
-        $sql = "INSERT INTO user(username,password,picture,privacy)VALUES('$username','$password','$picture','$key')";
+        $sql = "INSERT INTO pre_user(username,password,picture,privacy,email,token)VALUES('$username','$password','$picture','$key','$email','$token')";
         $result = $this->conn->query($sql);
         $lastID = $this->conn->insert_id;
 
@@ -36,9 +36,8 @@ class Users extends Database{
     }
 
     public function addFollow($userid,$followedid){
-        $sql = "INSERT INTO follow(userid,followedid)VALUES('$userid','$followedid');
-                INSERT INTO latestChat(sendid,receivedid)VALUES('$userid','$followedid')";
-        $result = $this->conn->multi_query($sql);
+        $sql = "INSERT INTO follow(userid,followedid)VALUES('$userid','$followedid')";
+        $result = $this->conn->query($sql);
 
         if($result == false){
             die('YOU CANT FOLLOW'.$this->conn->connect_error);
@@ -179,6 +178,17 @@ class Users extends Database{
 
     public function getUser($id){
         $sql = "SELECT * FROM user WHERE userid = '$id'";
+        $result = $this->conn->query($sql);
+
+        if($result->num_rows>0){
+            return $result->fetch_assoc();
+        }else{
+            return false;
+        }
+    }
+
+    public function getPreUser($id){
+        $sql = "SELECT * FROM pre_user WHERE pre_userid = '$id'";
         $result = $this->conn->query($sql);
 
         if($result->num_rows>0){
@@ -349,6 +359,21 @@ class Users extends Database{
         }
     }
 
+    public function getOrderedChat($userid){
+        $sql = "SELECT * FROM chat WHERE sendid = '$userid' OR  receiveid = '$userid' ORDER BY sendTime DESC";
+        $result = $this->conn->query($sql);
+
+        if($result->num_rows>0){
+            $row = array();
+            while($rows = $result->fetch_assoc()){
+                $row[] = $rows;
+            }
+            return $row;
+        }else{
+            return false;
+        }
+    }
+
     public function getNotYetChack($userid,$friendid){
         $sql = "SELECT * FROM chat WHERE receiveid = '$userid' AND sendid = '$friendid' AND chatCheck='notcheck'";
         $result = $this->conn->query($sql);
@@ -492,7 +517,7 @@ class Users extends Database{
     }
 
     public function latestSentence($sendid,$receiveid){
-        $sql = "SELECT * FROM chat WHERE sendid = '$sendid' AND receiveid = '$receiveid' ORDER BY chatid DESC LIMIT 1";
+        $sql = "SELECT * FROM chat WHERE (sendid = '$sendid' AND receiveid = '$receiveid') OR (receiveid = '$sendid' AND sendid = '$receiveid') ORDER BY chatid DESC LIMIT 1";
         $result = $this->conn->query($sql);
 
         if($result->num_rows>0){

@@ -1,6 +1,6 @@
 .dp
 {
-    
+    border-radius: 50%;
     border:10px solid #eee;
     transition: all 0.2s ease-in-out;
 }
@@ -35,3 +35,14 @@
     height: 800px;
     overflow: scroll;
 }
+
+.chat_icon{
+    color: gray;
+    transition: color 2s;
+}
+
+.chat_icon:hover{
+    color: rgb(199, 189, 189);
+}
+
+
