@@ -25,22 +25,74 @@ foreach ($follow as $followRow) {
 }
 
 foreach ($follows as $postsRow) {
-    $posts[] = $Users->getPostAndUser2($postsRow['followedid']);
+    // フォローしている仲間の情報ゲット
+    $lockUser = $Users->getUser($postsRow['followedid']);
+    // もしプライベートアカウントなら
+    if($lockUser['privacy'] == 'lock'){
+        //許可しているユーザーゲット
+        $allow = $Users->getAllow($postsRow['followedid']);
+        foreach($allow as $allowRow){
+            //もし許されているのなら
+            if($allowRow['allowUserid'] == $id){
+                //そのユーザーのシェア全て取得
+                $share = $Users->getShare($postsRow['followedid']);
+                foreach($share as $shareRow){
+                    $postCount = 0;
+                    foreach($posts as $postsRow){
+                        //もしすでにポストの中にあったら
+                        if($postsRow['postid'] == $shareRow['postid']){
+                            $postCount++;
+                        }
+                    }
+                    //まだポストになかったら(カウントがゼロなら)
+                    if($postCount == 0){
+                        $posts[] = $Users->getPostAndUser($shareRow['postid']);
+                    }
+                
+                }
+            }
+        }
+    }else{
+        $share = $Users->getShare($postsRow['followedid']);
+        foreach($share as $shareRow){
+            $postCount = 0;
+            foreach($posts as $postsRow){
+                //もしすでにポストの中にあったら
+                if($postsRow['postid'] == $shareRow['postid']){
+                    $postCount++;
+                }
+            }
+            if($postCount == 0){
+                $posts[] = $Users->getPostAndUser($shareRow['postid']);
+            }
+        }
+    }
 }
-
 //　チャットのファンクション
-$followed = $Users->getfollowers($id);
-foreach ($followed as $followedRow) {
-    foreach ($follow as $followRow) {
-        if ($followedRow['userid'] == $followRow['followedid'] and $followedRow['userid'] !== $id) {
-            $friends[] = $Users->getUser($followRow['followedid']);
+
+$follow = $Users->getOrderedChat($id);
+foreach($follow as $followRow){
+    $count = 0;
+    foreach($friends as $friendsRow){
+        if($friendsRow['userid'] == $followRow['receiveid'] OR $friendsRow['userid'] == $followRow['sendid']){
+            $count = 1;
+        }
+    }
+    if($count == 0){
+        if($followRow['sendid'] == $id){
+            $friends[] = $Users->getUser($followRow['receiveid']);
+        }else{
+            $friends[] = $Users->getUser($followRow['sendid']);
         }
     }
 }
 
+
 if (isset($_SESSION['friendid'])) {
     $_POST['friendid'] = $_SESSION['friendid'];
 }
+
+$groupChat = $Users->getGroupChats($id);
 
 
 
@@ -64,7 +116,7 @@ if (isset($_SESSION['friendid'])) {
     <div class="container">
         <!-- navi bar -->
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <a class="navbar-brand" href="homepage.php">HOME</a>
+            <a class="navbar-brand" href="homepage.php"><i class="fas fa-home">HOME</i></a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -72,16 +124,22 @@ if (isset($_SESSION['friendid'])) {
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav mr-auto">
                     <li class="nav-item active">
-                        <a class="nav-link" href="addpost.php">Add Post <span class="sr-only">(current)</span></a>
+                        <a class="nav-link" href="addpost.php"><i class="fas fa-plus-square">AddPost</i><span class="sr-only">(current)</span></a>
+                    </li>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="makeGorup.php"><i class="fas fa-users">Group</i><span class="sr-only">(current)</span></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="follows.php">Follows</a>
+                        <a class="nav-link" href="follows.php"><i class="fas fa-user">Follows</i></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link disabled" href="edit.php">Edit</a>
+                        <a class="nav-link" href="followers.php"><i class="far fa-user">Followers</i></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link disabled" href="logout.php">logout</a>
+                        <a class="nav-link disabled" href="edit.php"><i class="fas fa-user-edit">edit</i></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link disabled" href="logout.php"><i class="fas fa-sign-out-alt">logout</i></a>
                     </li>
                 </ul>
                 <form class="form-inline my-2 my-lg-0" action="action.php" method="post">
@@ -95,9 +153,11 @@ if (isset($_SESSION['friendid'])) {
         <div class="d-flex justify-content-center">
             <div class="image_outer_container">
                 <div class="green_icon"></div>
-                <div class="image_inner_container">
-                    <img src='uploads/<?php echo $user['picture'] ?>'>
-                </div>
+                <a href='profile.php?id=<?php echo $id?>'>               
+                    <div class="image_inner_container">
+                        <img src='uploads/<?php echo $user['picture'] ?>'>
+                    </div>
+                </a>
             </div>
         </div>
         <h1 class="username"><?php echo $user['username'] ?></h1>
@@ -107,9 +167,8 @@ if (isset($_SESSION['friendid'])) {
             <div class="col-6">
                 <!-- post start -->
                 <?php foreach ($posts as $postsRow) : ?>
-                    <?php foreach ($postsRow as $row) : ?>
                         <?php
-                        $nice = $Users->getNice($row['postid']);
+                        $nice = $Users->getNice($postsRow['postid']);
                         $niceAmount = 0;
                         $myNice = 0;
                         foreach ($nice as $niceRow) {
@@ -118,7 +177,7 @@ if (isset($_SESSION['friendid'])) {
                                 $myNice++;
                             }
                         }
-                        $share = $Users->getPostShare($row['postid']);
+                        $share = $Users->getPostShare($postsRow['postid']);
                         $shareAmount = 0;
                         $myShare = 0;
                         foreach ($share as $niceRow) {
@@ -137,10 +196,10 @@ if (isset($_SESSION['friendid'])) {
                                             <div class="cardbox-heading">
                                                 <div class="media m-0">
                                                     <div class="d-flex mr-3">
-                                                        <a href=""><img class="img-fluid rounded-circle" src="uploads/<?php echo $row['picture'] ?>" alt="User"></a>
+                                                        <a href="profile.php?id=<?php echo $postsRow['userid']?>"><img class="img-fluid rounded-circle" src="uploads/<?php echo $postsRow['picture'] ?>" alt="User"></a>
                                                     </div>
                                                     <div class="media-body">
-                                                        <h3 class="m-0"><?php echo $row['title'] ?></h3>
+                                                        <h3 class="m-0"><?php echo $postsRow['title'] ?></h3>
                                                     </div>
                                                 </div>
                                                 <!--/ media -->
@@ -148,12 +207,12 @@ if (isset($_SESSION['friendid'])) {
                                             <!--/ cardbox-heading -->
 
                                             <div class="cardbox-item">
-                                                <img class="img-fluid" src="uploads/<?php echo $row['postPicture']; ?>" alt="Image">
+                                                <img class="img-fluid" src="uploads/<?php echo $postsRow['postPicture']; ?>" alt="Image">
                                             </div>
                                             <!--/ cardbox-item -->
                                             <form action="action.php" method="post" class="cardbox-base">
                                                 <!-- postid and id send -->
-                                                <input type='hidden' name='postid' value='<?php echo $row['postid'] ?>'>
+                                                <input type='hidden' name='postid' value='<?php echo $postsRow['postid'] ?>'>
                                                 <input type='hidden' name='userid' value='<?php echo $id ?>'>
                                                 <ul class="float-right">
                                                     <li><a>
@@ -168,10 +227,12 @@ if (isset($_SESSION['friendid'])) {
 
                                                     <li><a>
                                                             <?php
-                                                            if ($myShare == 0) {
-                                                                echo "<button class='btn p-0' type='submit' name='shareSubmit'><i class='far fa-share-square''>$shareAmount</i></button>";
-                                                            } else {
-                                                                echo "<button class='btn p-0' type='submit' name='unShareSubmit'><i class='fas fa-share-square'>$shareAmount</i></button>";
+                                                            if($id !== $postsRow['userid']){
+                                                                if ($myShare == 0) {
+                                                                    echo "<button class='btn p-0' type='submit' name='shareSubmit'><i class='far fa-share-square''>$shareAmount</i></button>";
+                                                                } else {
+                                                                    echo "<button class='btn p-0' type='submit' name='unShareSubmit'><i class='fas fa-share-square'>$shareAmount</i></button>";
+                                                                }
                                                             }
                                                             ?>
                                                         </a></li>
@@ -182,22 +243,35 @@ if (isset($_SESSION['friendid'])) {
                                                     <?php
                                                     foreach ($nice as $niceRow) {
                                                         $niceFriend = $Users->getuser($niceRow['userid']);
-                                                        echo "<li><a href='#'><img src='uploads/" . $niceFriend['picture'] . "' class='img-fluid rounded-circle' alt='User'></a></li>";
+                                                        echo "<li><a href='profile.php?id=" . $niceFriend['userid'] . "'><img src='uploads/" . $niceFriend['picture'] . "' class='img-fluid rounded-circle' alt='User'></a></li>";
                                                     }
                                                     ?>
 
                                                     <li><a><span><?php echo $niceAmount ?> Likes</span></a></li>
                                                 </ul>
                                             </form>
+                                            <?php
+                                            $comment = $Users->getComment($postsRow['postid']);
+                                            foreach ($comment as $commentRow) {
+                                                echo "<div class='comments'>
+                                                    <img src='uploads/" . $commentRow['picture'] . "'  class='pull-left comment_image'>
+                                                    <p class='comment_post'>" . $commentRow['comment'] . "</p>
+                                                </div>";
+                                            }
+                                            ?>
+
                                             <!--/ cardbox-base -->
                                             <div class="cardbox-comments">
                                                 <span class="comment-avatar float-left">
-                                                    <a href=""><img class="rounded-circle" src="uploads/<?php echo $user['picture']; ?>" alt="..."></a>
+                                                    <a href="profile.php?id=<?php echo $id?>"><img class="rounded-circle" src="uploads/<?php echo $user['picture']; ?>" alt="..."></a>
                                                 </span>
-                                                <div class="search">
-                                                    <input placeholder="Write a comment" type="text">
-                                                    <button><i class="fa fa-camera"></i></button>
-                                                </div>
+                                                <form class="search" method='post' action="action.php">
+                                                    <input type="hidden" name="postid" value="<?php echo $postsRow['postid'] ?>">
+                                                    <input type="hidden" name="userid" value="<?php echo $id ?>">
+                                                    <input type="hidden" name="friendid" value="<?php echo $friendid ?>">
+                                                    <input placeholder="Write a comment" type="text" name="comment">
+                                                    <button type="submit" name='submitCommentChat'><i class="fa fa-paper-plane"></i></button>
+                                                </form>
                                                 <!--/. Search -->
                                             </div>
                                             <!--/ cardbox-like -->
@@ -211,12 +285,12 @@ if (isset($_SESSION['friendid'])) {
                             <!--/ container -->
                         </section>
                     <?php endforeach; ?>
-                <?php endforeach; ?>
             </div>
             <!-- ここからチャット -->
 
-            <div class="col-6 mt-5">
+            <div class="col-6" style='margin-top: 100px;'>
                 <?php
+                // フレンドチャット
                 foreach ($friends as $friendsRow) {
                     //未読の取得
                     $notYetSentence = $Users->getNorYetSentence($friendsRow['userid'], $id);
@@ -237,16 +311,20 @@ if (isset($_SESSION['friendid'])) {
 
                     $time = $timeStamp1 - $timeStamp2;
 
-                    echo "  <div class='row'>
-                                    <form class='col-12 alert alert-secondary mb-3' method='post'>
+                    echo " <div class='row'>
+                                    <form class='col-12 alert alert-light mb-3' method='post'>
                                     <input type='hidden' name='friendid' value='" . $friendsRow['userid'] . "'>
-                                    <div href='' class='pull-left mr-2'>
-                                        <a href='#'  class='d-block'><img src='uploads/" . $friendsRow['picture'] . "' class='media-object dp img-circle' style='width: 100px;height:100px;'></a>
-                                        <a href='homepageChat.php?id=".$friendsRow['userid']."' class='btn btn-secondary'>chat</a>
+                                    <div class='pull-left mr-2'>
+                                        <a href='profile.php?id=".$friendsRow['userid']."'  class='d-block'><img src='uploads/" . $friendsRow['picture'] . "' class='media-object dp img-circle' style='width: 100px;height:100px;'></a>
+                                        <a href='homepageChat.php?id=".$friendsRow['userid']."'><i class='fas fa-comment fa-2x chat_icon'></i></a>
                                     </div>
                                     <div class='pull-right number_notyet mr-2'><h1>$sentenceCount</h1></div>
                                     <h1>" . $friendsRow['username'] . "</h1>
-                                    <p>" . $latestSentence['sentence'] . "</p>
+                                    <p ";
+                                    if($latestSentence['chatCheck'] == 'notcheck' AND $latestSentence['receiveid'] == $id){
+                                        echo "style='font-weight:bold; font-size: 20px;'";
+                                    }
+                    echo            ">" . $latestSentence['sentence'] . "</p>
                                     <h3>";
                     //時間の計算
                     if ($time > 60 * 60 * 24) {
@@ -268,6 +346,42 @@ if (isset($_SESSION['friendid'])) {
                                 </form>
                                 </div>";
                 }
+
+                // グループチャット
+                foreach($groupChat as $groupChatKey => $groupChatRow){
+                    // 最新のセンテンス
+                    $latestGroupChatSentence = $Users->latestGroupChatSentence($groupChatRow['groupid']);
+                    //未読のカウント
+                    $notYetCount = 0;
+                    //そのグループのセンテンス全て取得
+                    $sentence = $Users->getGroupChatSentence($groupChatRow['groupid']);
+                    foreach($sentence as  $sectencdKey =>  $sentenceRow){
+                      //送り主が自分以外の時
+                      if($sentenceRow['userid'] !==  $id){
+                        //既読済みのセンテンス取得
+                        $alreadySentence = $Users->getCheckGroupChatSentence($id,$sentenceRow['groupChatSentenceid']);
+                        //既読済みでない時
+                        if($sentenceRow['groupChatSentenceid'] !== $alreadySentence['groupChatSentenceid']){
+                          $notYetCount++;
+                        }
+                      }
+                    }
+                    echo " <div class='row'>
+                            <form class='col-12 alert alert-success mb-3' method='post'>
+                            <div class='pull-left mr-2'>
+                                <a href='groupProfile.php?id=".$groupChatRow['groupid']."'  class='d-block'><img src='uploads/" . $groupChatRow['groupChatPicture'] . "' class='media-object dp img-circle' style='width: 100px;height:100px;'></a>
+                                <a href='homepageGroupChat.php?id=".$groupChatRow['groupid']."' class='btn btn-secondary'>chat</a>
+                                <input type='hidden' name='userid' value='$id'>
+                                <input type='hidden' name='groupid' value='".$groupChatRow['groupid']."'>
+                                <button class='btn btn-outline-danger' type='submit' name='deleteGroupChat'>delete</button>
+                            </div>
+                            <div class='pull-right number_notyet mr-2'><h1>$notYetCount</h1></div>
+                            <h1>" . $groupChatRow['groupChatName'] . "</h1>
+                            <p>" . $latestGroupChatSentence['groupChatSentence'] . "</p>
+                            </form>
+                            </div>";
+                }
+            
                 ?>
 
 

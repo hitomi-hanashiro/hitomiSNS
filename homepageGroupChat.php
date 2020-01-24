@@ -46,14 +46,8 @@ foreach ($follows as $postsRow) {
 }
 
 //　チャットのファンクション
-$followed = $Users->getfollowers($id);
-foreach ($followed as $followedRow) {
-    foreach ($follow as $followRow) {
-        if ($followedRow['userid'] == $followRow['followedid'] and $followedRow['userid'] !== $id) {
-            $friends[] = $Users->getUser($followRow['followedid']);
-        }
-    }
-}
+$groupid = $_GET['id'];
+$dialog = $Users->getGroupChatSentence($groupid);
 
 
 
@@ -79,13 +73,13 @@ foreach ($followed as $followedRow) {
     <div class="container">
         <!-- navi bar -->
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <a class="navbar-brand" href="homepage.php"><i class="fas fa-home">HOME</i></a>
+             <a class="navbar-brand" href="homepage.php"><i class="fas fa-home">HOME</i></a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav mr-auto">
+                 <ul class="navbar-nav mr-auto">
                     <li class="nav-item active">
                         <a class="nav-link" href="addpost.php"><i class="fas fa-plus-square">AddPost</i><span class="sr-only">(current)</span></a>
                     </li>
@@ -190,12 +184,10 @@ foreach ($followed as $followedRow) {
 
                                                     <li><a>
                                                             <?php
-                                                            if($id !== $postsRow['userid']){
-                                                                if ($myShare == 0) {
-                                                                    echo "<button class='btn p-0' type='submit' name='shareSubmit'><i class='far fa-share-square''>$shareAmount</i></button>";
-                                                                } else {
-                                                                    echo "<button class='btn p-0' type='submit' name='unShareSubmit'><i class='fas fa-share-square'>$shareAmount</i></button>";
-                                                                }
+                                                            if ($myShare == 0) {
+                                                                echo "<button class='btn p-0' type='submit' name='shareSubmit'><i class='far fa-share-square''>$shareAmount</i></button>";
+                                                            } else {
+                                                                echo "<button class='btn p-0' type='submit' name='unShareSubmit'><i class='fas fa-share-square'>$shareAmount</i></button>";
                                                             }
                                                             ?>
                                                         </a></li>
@@ -253,29 +245,39 @@ foreach ($followed as $followedRow) {
 
             <div class="col-6 mt-5 side_by_side" style="height: 800px; overflow: scroll;">
                 <?php
-                $dialog = $Users->getChat($id, $friendid);
                 echo "<div class='row rounded-lg overflow-hidden shadow'>
                                 <div class='col-12 px-0'>
                                 <div class='bg-white'>";
                 foreach ($dialog as $dialogRow) {
-                    $user = $Users->getUser($dialogRow['sendid']);
-                    if ($dialogRow['sendid'] == $id) {
+                    $user = $Users->getUser($dialogRow['userid']);
+                    $check = $Users->getGroupChatsSentenceCheck($dialogRow['groupChatSentenceid']);
+                    $checkAmount = 0;
+                    $checkSwitch = 0;
+                    foreach($check as $checkKey => $checkRow){
+                        $checkAmount++;
+                        if($checkRow['userid'] == $id){
+                            $checkSwitch++;
+                        }
+                    }
+                    if ($dialogRow['userid'] == $id) {
                         echo "<div class='media w-50 ml-auto mb-3'>
                                         <div class='media-body'>
                                             <div class='bg-primary rounded py-2 px-3 mb-2'>
-                                                <p class='text-small mb-0 text-white'>" . $dialogRow['sentence'] . "</p>
+                                                <p class='text-small mb-0 text-white'>" . $dialogRow['groupChatSentence'] . "</p>
                                             </div>";
-                        if ($dialogRow['chatCheck'] == 'check') {
-                            echo "<p class='small text-muted'>check</p>";
+                        if ($checkAmount >= 1) {
+                            echo "<p class='small text-muted'>$checkAmount</p>";
                         }
                         echo "</div>
                                     </div>";
                     } else {
-                        $Users->checkedChat($dialogRow['chatid']);
+                        if($checkSwitch == 0){
+                            $Users->addGroupChatSentenceCheck($dialogRow['groupChatSentenceid'],$id,$dialogRow['groupid']);
+                        }
                         echo "<div class='media w-50 mb-3'><img src='uploads/" . $user['picture'] . "' alt='user' width='50' class='rounded-circle'>
                                         <div class='media-body ml-3'>
                                             <div class='bg-light rounded py-2 px-3 mb-2'>
-                                                <p class='text-small mb-0 text-muted'>" . $dialogRow['sentence'] . "</p>
+                                                <p class='text-small mb-0 text-muted'>" . $dialogRow['groupChatSentence'] . "</p>
                                             </div>
                                         </div>
                                     </div>";
@@ -284,10 +286,10 @@ foreach ($followed as $followedRow) {
                 echo "  <form action='action.php' method='post' class='bg-light'>
                                     <div class='input-group'>
                                         <input type='text' name='sentence' placeholder='Type a message' aria-describedby='button-addon2' class='form-control rounded-0 border-0 py-4 bg-light'>
-                                        <input type='hidden' name='sendid' value='$id'>
-                                        <input type='hidden' name='receiveid' value='$friendid'>
+                                        <input type='hidden' name='userid' value='$id'>
+                                        <input type='hidden' name='groupid' value='$groupid'>
                                         <div class='input-group-append'>
-                                            <button id='button-addon2' type='submit' class='btn btn-link' name='submitSentence'> <i class='fa fa-paper-plane' ></i></button>
+                                            <button id='button-addon2' type='submit' class='btn btn-link' name='submitGroupChatSentence'> <i class='fa fa-paper-plane' ></i></button>
                                         </div>
                                     </div>
                                 </form>

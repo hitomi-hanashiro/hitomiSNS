@@ -307,3 +307,38 @@ body {
    color: #8d8d8d;
   }
 
+  /* ここからポスト */
+.comments{
+  height: 40px;
+  width: 100%;
+  margin-bottom: 5px;
+}
+  .comment_image{
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    margin-left: 5px;
+  }
+
+  .comment_post{
+    opacity: 0.9;
+    background: rgba(206, 199, 199);
+    width: 300px;
+    border-radius: 5px;
+    height: 30px;
+    padding: 3px;
+    margin: auto 50px;
+  }
+
+  .comment_post p{
+    line-height: 30px;
+    font-size: 20px;
+  }
+
+  .opct{
+    opacity: 0.9;
+  }
+
+  .chat_friend{
+    box-shadow: 5px 5px 5px 10px rgba(0,0,0,0.2);
+  }
