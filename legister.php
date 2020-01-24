@@ -38,17 +38,6 @@
 				 </div>
           </div>
 		  </div>
-	
-	<!-----For email---->
-			<div class="col-sm-12">
-					<div class="row">
-						<div class="col-xs-4">
-							<label class="pass">Email :</label></div>
-					<div class="col-xs-8">
-							<input type="email" name="email" id="email" placeholder="Enter your Email" class="form-control">
-					</div>
-			</div>
-			</div>
           
      <!-----For Picture and confirm---->
             <div class="col-sm-12">

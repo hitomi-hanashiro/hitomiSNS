@@ -61,7 +61,7 @@ $groupid = $groupid + 1;
                         <a class="nav-link" href="makeGorup.php"><i class="fas fa-users">Group</i><span class="sr-only">(current)</span></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="follows.php"><i class="fas fa-user">Follows</i></a>
+                        <a class="nav-link text-primary" href="follows.php"><i class="fas fa-user">Follows</i></a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="followers.php"><i class="far fa-user">Followers</i></a>

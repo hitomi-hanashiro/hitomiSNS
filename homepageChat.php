@@ -174,6 +174,7 @@ foreach ($followed as $followedRow) {
                                             </div>
                                             <!--/ cardbox-item -->
                                             <form action="action.php" method="post" class="cardbox-base">
+                                                <p class="p-3"><?php echo $postsRow['vio'] ?></p>
                                                 <!-- postid and id send -->
                                                 <input type='hidden' name='postid' value='<?php echo $postsRow['postid'] ?>'>
                                                 <input type='hidden' name='userid' value='<?php echo $id ?>'>
@@ -217,8 +218,8 @@ foreach ($followed as $followedRow) {
                                             $comment = $Users->getComment($postsRow['postid']);
                                             foreach ($comment as $commentRow) {
                                                 echo "<div class='comments'>
-                                                    <img src='uploads/" . $commentRow['picture'] . "'  class='pull-left comment_image'>
-                                                    <p class='comment_post'>" . $commentRow['comment'] . "</p>
+                                                        <a href='profile.php?id=".$commentRow['userid']."'><img src='uploads/" . $commentRow['picture'] . "'  class='pull-left comment_image'></a>
+                                                        <p class='comment_post'>" . $commentRow['comment'] . "</p>
                                                 </div>";
                                             }
                                             ?>

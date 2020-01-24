@@ -116,7 +116,7 @@ $groupChat = $Users->getGroupChats($id);
     <div class="container">
         <!-- navi bar -->
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <a class="navbar-brand" href="homepage.php"><i class="fas fa-home">HOME</i></a>
+            <a class="navbar-brand text-primary" href="homepage.php"><i class="fas fa-home">HOME</i></a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -211,6 +211,7 @@ $groupChat = $Users->getGroupChats($id);
                                             </div>
                                             <!--/ cardbox-item -->
                                             <form action="action.php" method="post" class="cardbox-base">
+                                                <p class="p-3"><?php echo $postsRow['vio'] ?></p>
                                                 <!-- postid and id send -->
                                                 <input type='hidden' name='postid' value='<?php echo $postsRow['postid'] ?>'>
                                                 <input type='hidden' name='userid' value='<?php echo $id ?>'>
@@ -254,7 +255,7 @@ $groupChat = $Users->getGroupChats($id);
                                             $comment = $Users->getComment($postsRow['postid']);
                                             foreach ($comment as $commentRow) {
                                                 echo "<div class='comments'>
-                                                    <img src='uploads/" . $commentRow['picture'] . "'  class='pull-left comment_image'>
+                                                    <a href='profile.php?id=".$commentRow['userid']."'><img src='uploads/" . $commentRow['picture'] . "'  class='pull-left comment_image'></a>
                                                     <p class='comment_post'>" . $commentRow['comment'] . "</p>
                                                 </div>";
                                             }
@@ -367,7 +368,7 @@ $groupChat = $Users->getGroupChats($id);
                       }
                     }
                     echo " <div class='row'>
-                            <form class='col-12 alert alert-success mb-3' method='post'>
+                            <form class='col-12 alert alert-secondary mb-3' method='post'>
                             <div class='pull-left mr-2'>
                                 <a href='groupProfile.php?id=".$groupChatRow['groupid']."'  class='d-block'><img src='uploads/" . $groupChatRow['groupChatPicture'] . "' class='media-object dp img-circle' style='width: 100px;height:100px;'></a>
                                 <a href='homepageGroupChat.php?id=".$groupChatRow['groupid']."' class='btn btn-secondary'>chat</a>

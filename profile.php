@@ -23,7 +23,11 @@ if ($profileUser['privacy'] == 'lock') {
     }
 }
 // ポストのファンクション
-$post = $Users->getPostAndUser2($profileUser['userid']);
+$share = $Users->getShare($profileid);
+foreach($share as $shareRow){
+    $post[] = $Users->getPostAndUser($shareRow['postid']);
+}
+// $post = $Users->getPostAndUser2($profileUser['userid']);
 
 
 ?>
@@ -145,6 +149,7 @@ $post = $Users->getPostAndUser2($profileUser['userid']);
                                         </div>
                                             <!--/ cardbox-item -->
                                         <form action='action.php' method='post' class='cardbox-base'>
+                                            <p class="p-3"><?php echo $row['vio'] ?></p>
                                         <!-- postid and id send -->
                                             <input type='hidden' name='postid' value='<?php echo $row['postid'] ?>'>
                                             <input type='hidden' name='userid' value='<?php echo $id ?>'>
@@ -164,7 +169,7 @@ $post = $Users->getPostAndUser2($profileUser['userid']);
                                                 <li><a>
                                                     
                                                     <?php 
-                                                        if($id !== $profileid){
+                                                        if($id !== $row['userid']){
                                                             if ($myShare == 0) {
                                                             echo "<button class='btn p-0' type='submit' name='shareSubmitProfile'><i class='far fa-share-square''>$shareAmount</i></button>";
                                                             } else {
@@ -191,7 +196,7 @@ $post = $Users->getPostAndUser2($profileUser['userid']);
                                             <?php $comment = $Users->getComment($row['postid']);
                                                 foreach ($comment as $commentRow) {
                                                 echo "<div class='comments'>
-                                                        <img src='uploads/" . $commentRow['picture'] . "'  class='pull-left comment_image'>
+                                                        <a href='profile.php?id=".$commentRow['userid']."'><img src='uploads/" . $commentRow['picture'] . "'  class='pull-left comment_image'></a>
                                                         <p class='comment_post'>" . $commentRow['comment'] . "</p>
                                                     </div>";
                                                 } 
