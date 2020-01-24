@@ -273,7 +273,7 @@ foreach ($followed as $followedRow) {
                                     </div>";
                     } else {
                         $Users->checkedChat($dialogRow['chatid']);
-                        echo "<div class='media w-50 mb-3'><img src='uploads/" . $user['picture'] . "' alt='user' width='50' class='rounded-circle'>
+                        echo "<div class='media w-50 mb-3'><a href='profile.php?id=".$user['userid']."'><img src='uploads/" . $user['picture'] . "' alt='user' width='50' class='rounded-circle'></a>
                                         <div class='media-body ml-3'>
                                             <div class='bg-light rounded py-2 px-3 mb-2'>
                                                 <p class='text-small mb-0 text-muted'>" . $dialogRow['sentence'] . "</p>
