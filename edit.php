@@ -54,7 +54,7 @@ $followsid = $Users->getfollows($id);
                         <a class="nav-link" href="followers.php"><i class="far fa-user">Followers</i></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link disabled" href="edit.php"><i class="fas fa-user-edit">edit</i></a>
+                        <a class="nav-link disabled text-primary" href="edit.php"><i class="fas fa-user-edit">edit</i></a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link disabled" href="logout.php"><i class="fas fa-sign-out-alt">logout</i></a>

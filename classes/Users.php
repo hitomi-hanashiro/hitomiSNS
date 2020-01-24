@@ -2,11 +2,11 @@
 include 'Database.php';
 class Users extends Database{
 
-    public function addPreUser($username,$password,$picture,$key,$email,$token){
+    public function addUser($username,$password,$picture,$key){
         $picture =  $_FILES['image']['name'];
         $target_dir =  'uploads/';
         $target_file = $target_dir.basename($picture);
-        $sql = "INSERT INTO pre_user(username,password,picture,privacy,email,token)VALUES('$username','$password','$picture','$key','$email','$token')";
+        $sql = "INSERT INTO user(username,password,picture,privacy)VALUES('$username','$password','$picture','$key')";
         $result = $this->conn->query($sql);
         $lastID = $this->conn->insert_id;
 
